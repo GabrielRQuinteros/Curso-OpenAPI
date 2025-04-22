@@ -1,0 +1,11 @@
+export * from './authentication.service';
+import { AuthenticationService } from './authentication.service';
+export * from './beers.service';
+import { BeersService } from './beers.service';
+export * from './customers.service';
+import { CustomersService } from './customers.service';
+export * from './deprecateds.service';
+import { DeprecatedsService } from './deprecateds.service';
+export * from './ordersService.service';
+import { OrdersServiceService } from './ordersService.service';
+export const APIS = [AuthenticationService, BeersService, CustomersService, DeprecatedsService, OrdersServiceService];

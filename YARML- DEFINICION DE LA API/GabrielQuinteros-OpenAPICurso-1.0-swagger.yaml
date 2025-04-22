@@ -1,0 +1,724 @@
+# openapi define la version de open api que se se esta usando.
+openapi: 3.0.4
+# El objeto "info" define informacion sobre nuestra version de la API y info de contacto, autor, licencias, etc.
+info:
+  version: '1.0'
+  title: GabyCursoOpenAPI
+  description: "Especificacion de OpenAPi para el Curso"
+  termsOfService: http://ejemplo.com/terms/
+  contact:
+    name: Gabriel Quinteros
+    url: https://www.linkedin.com/in/gabriel-quinteros-4007b3259/
+    email: QuinterosGabrielRoberto@hotmail.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+# El objeto servers te permite definir una lista de servidores con los cuales probar la API.
+# Pudiendo probar en una pagina endpoints de test, produccion, desarrollo etc.
+servers:
+- url: https://dev.mi-aplicacion.com/api
+  description: "Servido de Desarrollo"
+- url: https://qa.mi-aplicacion.com/api
+  description: "Servidor de Test"
+- url: https://prod.mi-aplicacion.com/api
+  description: "Servidor de Produccion"
+
+
+
+#### NOTA DE EXPORTACION DE API HUB ###################
+# HAY 2 MODALIDADES DE EXPORACION:
+# 1- CLIENT SDK --> GENERA CODIGO DE UNA APLICACION PARA "CONSUMIR" LA API QUE DEFINÍ
+# 2- SEVER STUB --> GENERA CODIGO PARA CREAR MI API. (PARA CONSTRUIR LA API)
+
+
+# El Objeto path permite definir endpoints de la aplicacion.
+paths:
+
+  /v1/login:
+    post:
+      summary: "Login"
+      description: "Permite loguearse en la aplicacion"
+      tags: 
+        - Authentication
+      operationId: LoginV1
+      security: []
+      requestBody:
+        description: "Credenciales de Usuario"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        200:
+          description: "Login exitoso"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        201:
+          description: "Unauthorized"
+
+  /v1/customers:
+    get:
+      summary: "Obtener Lista de Clientes paginado"
+      description: "Devuelve una lista de clientes paginada, pudiendo especificar el tamaño y el número de página."
+      tags: 
+        - Customers
+      operationId: ListCustomersV1
+      parameters: 
+      - $ref: '#/components/parameters/PageNumberParameter'
+      - $ref: '#/components/parameters/PageSizeParameter'
+      responses:
+        200:
+          description: "Lista de Clientes"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPageList'
+      # SOBRESCRIBO LA SEGURIDAD POR DEFECTO PARA QUE NO USE
+      # NINGUN METODO DE AUTENTICACION ESTE ENDPOINT
+      security: []
+      
+    post:
+      summary: "Nuevo cliente"
+      description: "Agregar un Nuevo cliente"
+      tags: 
+        - Customers
+      operationId: CreateCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '201':
+          description: "Cliente creado"
+          headers:
+            Location:
+              description: "Ubicacion del Cliente creado"
+              schema:
+                type: string
+                format: uri
+                example: "https://prod.mi-aplicacion.com/api/v1/customers/{assignedCustomerId}"
+        '400':
+          description: 'Bad Request'
+        '409':
+          description: 'Conflict'
+          
+    
+    
+# Ejemplo de un enpoint con path variable
+  /v1/customers/{customerId}:
+    get:
+      summary: "Obtener Cliente por Id"
+      description: "Obtiene un ***Cliente*** cuyo id sea el  suministrado."
+      tags: 
+        - Customers
+      operationId: GetCustomerByIdV1
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPathParameter'
+      responses:
+        200:
+          description: "Cliente encontrado"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        404:
+          description: "Not Found"
+    
+    put:
+      summary: "Actualiza el Cliente"
+      description: "Actualiza la informacion asociada a un Clienet"
+      tags: 
+        - Customers
+      operationId: UpdateCustomerV1
+      parameters: 
+        - $ref: '#/components/parameters/CustomerIdPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+              
+      responses:
+        204:
+          description: "Cliente actualizado"
+        400:
+          description: "Bad Request"
+        404:
+          description: "Not Found"
+        409:
+          description: "Conflict"
+    
+    delete:
+      summary: "Elimina un Cliente por Id"
+      description: "Elimina un Cliente del Sistema por Id"
+      tags: 
+        - Customers
+      operationId: DeleteCustomerByIdV1
+      parameters: 
+        - $ref: '#/components/parameters/CustomerIdPathParameter'
+      responses:
+        200:
+          description: "Cliente Eliminado"
+        404:
+          description: "Not Found"
+
+  /v1/beers:
+    get:
+      summary: "Obtener Lista de Cervezas"
+      description: "Devuelve una Lista de Cervezas paginada por tamaño y número de pagina."
+      tags: 
+        - Beers
+      operationId: ListBeersV1
+      parameters: 
+      - $ref: '#/components/parameters/PageNumberParameter'
+      - $ref: '#/components/parameters/PageSizeParameter'
+      - name: deprecated-parameter
+        description: "Prueba de un Parametro deprecado"
+        deprecated: true
+        in: query
+        schema:
+          type: string
+          default: ""
+      responses:
+        200:
+          description: "Lista de Cervezas"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeerPageList'
+    
+    post:
+      summary: "Crear Cerveza"
+      description: "Crea una cerveza"
+      tags: 
+        - Beers
+      operationId: CreateBeerV1
+      requestBody:
+        description: Informacion de la cerveza
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Beer'
+      responses:
+        201:
+          description: "Cerveza creada"
+          headers:
+            Location:
+              description: "Informacion de la cerveza"
+              schema:
+                type: string
+                format: uri
+                example: "https://prod.mi-aplicacion.com/api/v1/beers/{assignedBeerId}"
+        400:
+          description: 'Bad Request'
+        409:
+          description: 'Conflict'
+        
+    
+  /v1/beers/{beerId}:
+    get:
+      summary: "Obtener Cerveza por Id"
+      description: "Obtiene una ***Cerveza*** cuyo id sea el  suministrado."
+      tags: 
+        - Beers
+      operationId: GetBeerByIdV1
+      parameters:
+        - $ref: '#/components/parameters/BeerIdPathParameter'
+      responses:
+        200:
+          description: "Cerveza encontrada"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beer'
+        404:
+          description: "Cerveza no encontrada"
+    put:
+      summary: "Actualizar Cerveza"
+      description: "Actualiza la informacion de una Cerveza"
+      tags: 
+        - Beers
+      parameters: 
+        - $ref: '#/components/parameters/BeerIdPathParameter'
+      operationId: UpdateBeerV1
+      requestBody:
+        description: Informacion de la cerveza
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Beer'
+      responses:
+        204:
+          description: "Cerveza Actualizada"
+        400:
+          description: "Bad Request"
+        404:
+          description: "Not Found"
+        409:
+          description: "Conflict"
+    
+    delete:
+      summary: "Eliminar Cerveza por Id"
+      description: "Elimina del Sistema una Cerveza segun su Id"
+      tags: 
+        - Beers
+      parameters: 
+        - $ref: '#/components/parameters/BeerIdPathParameter'
+      operationId: DeleteBeerV1
+      responses:
+        200:
+          description: "Cerveza Eliminada"
+        404:
+          description: "Not Found"
+      
+      
+  /v1/customers/{customerId}/orders:
+    post:
+      tags:
+      - "Orders Service"
+      description: "Soliciar Orden de Compra"
+      parameters:
+      - name: customerId
+        in: path
+        description: Customer Id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeerOrder'
+        required: false
+      responses:
+        201:
+          description: "Orden de compra creada"
+          headers:
+            Location:
+              description: "Url de informacion de **Orden de compra**"
+              style: simple
+              explode: false
+              schema:
+                type: string
+                format: uri
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        409:
+          description: Conflict
+      callbacks:
+#Basicamente estoy definiendo que cuando se crea una orden de compra, el cliente va a recibir notificaciones del cambio de estado de la orden de compra a la URL definida aca abajo.
+#Esta url es definida por el cliente en la peticion que conlleva la creacion de la orden de compra.
+#En resumen, si cambia el estado de la rden, mi sevidor va a hacer un post a la url que suministró el cliente para avisar del cambio.
+#MAS DOCUMENTACION: https://swagger.io/docs/specification/v3_0/callbacks/
+        orderStatusChange:
+          ${request.body#/orderStatusCallbackUrl}:
+            description: "Webhook para notificar los **cambios en el estado** de la **Orden de Compra**"
+            post:
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        orderId:
+                          type: string
+                          format: uuid
+                        orderStatus:
+                          type: string
+              responses:
+                200:
+                  description: Okay
+  
+  /v1/invoices:
+    get:
+      summary: "Muestra de un enpoint deprecado  + Resumen de Endpoint"
+      deprecated: true
+      tags: 
+        - Deprecateds
+      operationId: ListInvoicesV1
+      responses:
+        200:
+          description: "Facturas de Compras"
+          content:
+            application/json:
+              schema:
+                type: string
+                
+
+###############################################################
+# OBJETO QUE DEFINE LA SEGURIDAD POR DEFECTO DE LOS ENDPOINTS #
+###############################################################
+security: 
+#  - BasicAuth: []
+  # POR DEFECTO DECIMOS QUE TODOS LOS ENDPOINTS USEN JWT SI ESTA VACIO.
+  # SE PUEDE MODIFICAR A QUE LO HAGAN ENDPOINTS ESPECIFICOS
+  - JWTAuthToken: []
+  
+
+
+          
+#El objeto components sirve para definir objetos ( en el contexto de programacion orientada a objetos )
+# Estos son objetos reutilizables que usan se repiten o no a lo largo de todos los endpoints.
+components:
+  
+  # DEFINE EN LA PARTE SUPERIOR LOS TIPOS DE AUTENTICACION.
+  # Es el boton de seguridad de mas arriba de los endpoints  que me permite reutilizar las credenciales en todos los endpoints. 
+  securitySchemes:
+  # Basic Auth --> Para cada enpoint pide usuario y contraseña
+#    BasicAuth:
+#      type: http
+#      scheme: basic
+
+  # El formato de JWT de toda la vida.
+    JWTAuthToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  ###################################
+  # Define Objetos reutilizables ####
+  schemas:
+    Address:
+      type: object
+      properties:
+        streetName:
+          type: string
+          description: "Nombre de Calle"
+          example: "San Martin"
+          
+        streetNumber:
+          type: string
+          description: "Numero de Calle"
+          example: "2345"
+          
+        city:
+          type: string
+          description: "Ciudad/Localidad"
+          example: San Justo
+          
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          description: "Codigo de Pais de 2 Caracteres"
+          type: string
+          enum:
+          - AR
+          - BR
+          - CH
+          - MX
+          - UK
+          
+        zipCode:
+          type: string
+          description: "Codigo Postal"
+          example: "2734"
+          
+    Customer:
+      type: object
+      description: "Objeto Cliente"
+      properties:
+        id:
+          type: string
+          format: uuid
+# Indica que la propiedad es de solo lectura
+# Util cuando queremos decir que el usuario no puede ni
+# indicar ni manipular este atributo. Ej: el id
+# Notar como en el POST, desaparece y en el GET del List y por id aparece la propiedad id
+          readOnly: true
+          
+        firstName:
+          maxLength: 100
+          minLength: 2
+          type: string
+          example: "Gabriel"
+          
+        lastName:
+# Setear constrains de longitud max y min de strings
+          maxLength: 100
+          minLength: 2
+          type: string
+          example: "Martinez"
+          
+        address:
+          $ref: '#/components/schemas/Address'
+      
+    CustomerList:
+#Setear constrains de max y min de cantidad de items de un array
+      maxItems: 100
+      minItems: 1
+      type: array
+      description: "Lista de Clientes"
+      items:
+        $ref: '#/components/schemas/Customer'
+        
+    BeersBrewery:
+      type: object
+      description: "Fabricante de Cervezas"
+      properties:
+        name:
+          type: string
+          description: "Nombre del Fabricante"
+        location:
+          type: string
+          description: "Ubicacion del Fabricante"
+    Beer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          
+        name:
+          type: string
+          description: "Nombre de Cerveza"
+          
+        style:
+          type: string
+          description: "Tipo de Cerveza"
+#Uso de Enums en OpenAPI
+          enum:
+          - ALE
+          - PALE_ALE
+          - IPA
+          - WHEAT
+          - LAGER
+
+        price:
+          type: number
+          description: "Precio por Litro de Cerveza"
+          format: float
+
+        currency:
+          type: string
+          description: "Moneda en que Cotiza la Cerveza"
+          enum: 
+            - ARS
+            - USD
+
+        stock:
+          type: integer
+          format: int32
+          description: "Stock de la Cerveza en litros"
+          
+        brewery:
+          $ref: '#/components/schemas/BeersBrewery'
+        
+      description: "Objeto Cerveza"
+    
+    BeerList:
+      type: array
+      description: "Lista de Cervezas"
+      items:
+        $ref: '#/components/schemas/Beer'
+    
+          
+# Objeto generico respuesta paginada.
+    PagedResponse:
+      type: object
+      properties:
+        pageable:
+          type: object
+          properties:
+            sort:
+              type: object
+              properties:
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+            offset:
+              type: integer
+              format: int32
+            pageNumber:
+              type: integer
+              format: int32
+            pageSize:
+              type: integer
+              format: int32
+            paged:
+              type: boolean
+            unpaged:
+              type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        last:
+          type: boolean
+
+#Esta es una Pagina de Cervezas
+#Hereda todas las propiedades de PagedResponse
+#Eso lo hace usando el allOf
+#Hay Herencia multiple si se necesita
+    BeerPageList:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PagedResponse'
+      properties:
+        content:
+          $ref: '#/components/schemas/BeerList'
+
+    CustomerPageList:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PagedResponse'
+      properties:
+        content:
+          $ref: '#/components/schemas/CustomerList'
+          
+    BeerOrder:
+      required:
+      - customerId
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        customerId:
+          type: string
+          format: uuid
+        customerRef:
+          type: string
+          nullable: true
+        beerOrderLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/BeerOrderLine'
+        orderStatusCallbackUrl:
+          type: string
+          format: uri
+
+    BeerOrderLine:
+      required:
+      - orderQuantity
+      - upc
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        beerId:
+          type: string
+          format: uuid
+          readOnly: true
+        upc:
+          type: string
+        orderQuantity:
+          maximum: 999
+          minimum: 1
+          type: integer
+        quantityAllocated:
+          type: integer
+          nullable: true
+          readOnly: true
+    
+    Role:
+      type: string
+      enum:
+        - ADMIN
+        - USER
+      example: USER
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        username:
+          type: string
+          example: gabrielquinteros
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+            
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: "Nombre de usuario"
+        password:
+          type: string
+          description: "Contraseña"
+    
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          example: "d2ViLmFwcC5yZWZyZXNoVG9rZW4uLi4u"
+        expiresIn:
+          type: integer
+          example: 3600
+        tokenType:
+          type: string
+          example: Bearer
+        user:
+          $ref: '#/components/schemas/User'
+    
+    
+##########################################################
+# DEFINE PARAMETROS DE ENPOINTS REUTILIZABLES ############
+##########################################################
+# Haciendo que Query Params sean componentes reutilizables
+# Hay que agregarlos a la seccion "parameters", dentro de components
+  
+  parameters:
+    PageNumberParameter:
+      name: pageNumber
+      description: "Numero de Pagina"
+      required: false
+      in: query
+      schema:
+        type: integer
+        format: int32
+        default: 1
+    
+    PageSizeParameter:
+      name: pageSize
+      description: "Tamaño de Pagina"
+      required: false
+      in: query
+      schema:
+        type: integer
+        format: int32
+        default: 30
+    
+    CustomerIdPathParameter:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    BeerIdPathParameter:
+      name: beerId
+      in: path
+      description: "Id de Cerveza"
+      required: true
+      schema:
+        type: string
+        format: uuid
